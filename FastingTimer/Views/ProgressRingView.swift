@@ -9,7 +9,10 @@ import SwiftUI
 
 struct ProgressRingView: View {
     
-    @State var progress = 0.0
+    @EnvironmentObject var viewModel : FastingViewModel
+    let timer = Timer
+        .publish(every: 1, on: .main, in: .common)
+        .autoconnect()
     
     var body: some View {
         ZStack {
@@ -19,7 +22,7 @@ struct ProgressRingView: View {
                 .opacity(0.1)
             
             Circle()
-                .trim(from: 0.0, to: min(progress, 1.0))
+                .trim(from: 0.0, to: min(viewModel.progress, 1.0))
                 .stroke(AngularGradient(
                     gradient: Gradient(
                         colors: Colors.gradient),
@@ -28,31 +31,43 @@ struct ProgressRingView: View {
                                            lineCap: .round,
                                            lineJoin: .round))
                 .rotationEffect((Angle(degrees: 270)))
-                .animation(.easeOut(duration: 1.0), value: progress)
+                .animation(.easeOut(duration: 1.0), value: viewModel.progress)
             
             VStack (spacing: 30) {
-                VStack (spacing: 5) {
-                    Text("Elapsed Time")
+                if viewModel.state == .notStarted {
+                    VStack (spacing: 5) {
+                        Text("Upcoming Fast")
+                            .opacity(0.7)
+                        Text("\(viewModel.plan.fastingPeriod.formatted()) Hours")
+                            .font(.title)
+                            .fontWeight(.bold)
+                    }
+                } else {
+                    VStack (spacing: 5) {
+                        Text("Elapsed Time (\(viewModel.progress.formatted(.percent)))")
+                            .opacity(0.7)
+                        Text(viewModel.startTime, style: .timer)
+                            .font(.title)
+                            .fontWeight(.bold)
+                    }
+                    .padding(.top)
+                    
+                    VStack (spacing: 5) {
+                        Text(viewModel.isElapsed
+                             ? "Remaining Time"
+                             : "Extra Time")
                         .opacity(0.7)
-                    Text("0.0")
-                        .font(.title)
-                        .fontWeight(.bold)
-                }
-                .padding(.top)
-                
-                VStack (spacing: 5) {
-                    Text("Remaining Time")
-                        .opacity(0.7)
-                    Text("0.0")
-                        .font(.title2)
-                        .fontWeight(.bold)
+                        Text(viewModel.endTime, style: .timer)
+                            .font(.title2)
+                            .fontWeight(.bold)
+                    }
                 }
             }
         }
         .frame(width: 250, height: 250)
         .padding()
-        .onAppear {
-            progress = 1
+        .onReceive(timer) { _ in
+            viewModel.track()
         }
     }
 }
@@ -60,5 +75,6 @@ struct ProgressRingView: View {
 struct ProgressRing_Previews: PreviewProvider {
     static var previews: some View {
         ProgressRingView()
+            .environmentObject(FastingViewModel())
     }
 }

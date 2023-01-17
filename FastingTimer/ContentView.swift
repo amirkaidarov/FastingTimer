@@ -68,7 +68,7 @@ struct ContentView: View {
                     .font(.headline)
                     .foregroundColor(Colors.lightPurple)
                 
-                Text("16:8")
+                Text(viewModel.plan.rawValue)
                     .fontWeight(.semibold)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 8)
@@ -81,13 +81,14 @@ struct ContentView: View {
             
             VStack (spacing: 40) {
                 ProgressRingView()
+                    .environmentObject(viewModel)
                 
                 HStack (spacing: 60) {
                     VStack (spacing: 5) {
                         Text(timerLabelBegin)
                             .opacity(0.7)
                         
-                        Text(Date(),
+                        Text(viewModel.startTime,
                              format: .dateTime
                             .weekday()
                             .hour()
@@ -101,7 +102,7 @@ struct ContentView: View {
                         Text(timerLabelEnd)
                             .opacity(0.7)
                         
-                        Text(Date().addingTimeInterval(16),
+                        Text(viewModel.endTime,
                              format: .dateTime
                             .weekday()
                             .hour()
